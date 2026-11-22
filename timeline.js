@@ -12,7 +12,7 @@ var Timeline = (function () {
   var LAYOUT = [
     { region: "Bassa Mesopotamia", stati: ["akkad", "ur", "babilonia", "elam"] },
     { region: "Alta Mesopotamia", stati: ["assiria", "mitanni", "urartu"] },
-    { region: "Siria e Levante", stati: ["ugarit", "amurru", "karkemish", "patina", "samal", "damasco",
+    { region: "Siria e Levante", stati: ["mari", "ugarit", "amurru", "karkemish", "patina", "samal", "damasco",
                                          "tiro", "biblo", "israele_unito", "israele", "giuda", "moab", "edom"] },
     { region: "Anatolia", stati: ["ittiti", "anatolia_occ"] },
     { region: "Egitto", stati: ["hyksos", "egitto"] },

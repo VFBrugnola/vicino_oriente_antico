@@ -230,7 +230,7 @@ footer { font-size:0.6rem; color:#5a4020; font-style:italic; text-align:center; 
   R.forEach(function (x) {
     var r = x.r, st = stInfo(r.stato);
     // re → stato
-    if (!/\(Mar/.test(r.nome)) add("re-stato:" + x.i, "sovrani", x.mid, function () {
+    add("re-stato:" + x.i, "sovrani", x.mid, function () {
       var same = {}; R.forEach(function (y) { if (y.r.nome === r.nome) same[stInfo(y.r.stato).label] = true; });
       var near = [], region = [], rest = [];
       Object.keys(STATO_INFO).forEach(function (s) {
@@ -284,7 +284,7 @@ footer { font-size:0.6rem; color:#5a4020; font-style:italic; text-align:center; 
     SEQ[s].forEach(function (x) {
       add("re-prima:" + x.i, "sovrani", x.mid, function () {
         var reg = stInfo(s).regione;
-        var later = R.filter(function (y) { return y !== x && y.r.inizio >= x.r.inizio + 20 && y.r.inizio <= x.r.inizio + 400 && !/\(Mar/.test(y.r.nome); });
+        var later = R.filter(function (y) { return y !== x && y.r.inizio >= x.r.inizio + 20 && y.r.inizio <= x.r.inizio + 400; });
         var sameSt = later.filter(function (y) { return y.r.stato === s; }), sameReg = later.filter(function (y) { return stInfo(y.r.stato).regione === reg; });
         var pool = shuffle(sameSt).concat(shuffle(sameReg)), chosen = [];
         pool.forEach(function (y) { if (chosen.length < 3 && chosen.indexOf(y) < 0 && rName(y) !== rName(x)) chosen.push(y); });

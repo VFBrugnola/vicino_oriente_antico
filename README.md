@@ -28,7 +28,8 @@ Dashboard di studio personale sul Vicino Oriente antico nell'Età del Bronzo e d
 - G. Giusfredi, *Il Vicino Oriente antico* (Carocci): periodizzazione per regione (Tabella 1), sovrani di Ur III e della casata di Hammurapi (Tabelle 2 e 3)
 - E.H. Cline, *1177 a.C.*: sovrani della tarda Età del Bronzo
 - E.H. Cline, *La sopravvivenza delle civiltà*: sovrani dell'area settentrionale e meridionale, XIII – VIII sec. a.C.
-- Fonti standard (manuali e liste reali correnti), **da verificare su Giusfredi**: le parentele dei sovrani (campi `padre` e `parentela` in `rulers.js`; nei casi discussi c'è solo il testo, con il dubbio segnalato) e i sovrani aggiunti per completare le dinastie: Akkad (date tradizionali, indicative), i neoassiri da Salmanassar IV ad Assur-uballit II, Amenofi I, Amenofi II, Thutmose IV, Horemheb, Ramses I, Seti I, Šamaš-šuma-ukin e Artaserse IV
+- Cronologia media standard (da verificare su Giusfredi): re di Akkad, Šamši-Adad I e re neo-assiri dell'VIII–VII sec. a.C. (date neo-assire dalle liste degli eponimi)
+- Fonti standard (manuali e liste reali correnti), **da verificare su Giusfredi**: le parentele dei sovrani (campi `padre` e `parentela` in `rulers.js`; nei casi discussi c'è solo il testo, con il dubbio segnalato) e i sovrani aggiunti per completare le dinastie: Amenofi I, Amenofi II, Thutmose IV, Horemheb, Ramses I, Seti I, Šamaš-šuma-ukin e Artaserse IV
 
 - [Cliopatria](https://github.com/Seshat-Global-History-Databank/cliopatria) (Seshat Global History Databank), CC BY 4.0: confini dei regni. Modifiche: estratto 3500–300 a.C. per il Vicino Oriente, geometrie semplificate, nomi tradotti in italiano. I confini sono indicativi e hanno lacune (per esempio Urartu e Giuda dopo il 701 a.C.)
 - [Natural Earth](https://www.naturalearthdata.com/) (pubblico dominio): terre, fiumi e laghi della cartina piatta (1:10m; mancano alcuni fiumi minori come Oronte, Khabur, Zab e Diyala)
