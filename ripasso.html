@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ripasso · Vicino Oriente Antico</title>
+<script src="data/civilizations.js"></script>
+<script src="data/periods.js"></script>
+<script src="data/regional_periods.js"></script>
+<script src="data/events.js"></script>
+<script src="data/battles.js"></script>
+<script src="data/cities.js"></script>
+<script src="data/rulers.js"></script>
+<script src="data/stati.js"></script>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Georgia",serif; background:#1a1208; color:#e8d9b0; min-height:100vh; min-height:100dvh; }
+header { background:linear-gradient(to bottom,#0e0a05,#1a1208); border-bottom:1px solid #5c3d0a;
+  padding:8px 14px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+header h1 { font-size:0.95rem; letter-spacing:0.1em; text-transform:uppercase; color:#d4a843; font-weight:normal; }
+header a { color:#8a7050; font-size:0.7rem; text-decoration:none; border:1px solid #3a2a0a; padding:4px 9px; border-radius:2px; white-space:nowrap; }
+header a:hover { color:#d4a843; border-color:#d4a843; }
+main { max-width:640px; margin:0 auto; padding:12px 14px 40px; }
+
+/* FILTRI */
+details#filtri { background:#0e0a05; border:1px solid #3a2a0a; border-radius:4px; margin-bottom:12px; }
+details#filtri summary { cursor:pointer; padding:8px 12px; font-size:0.75rem; color:#d4a843; letter-spacing:0.06em; list-style:none; }
+details#filtri summary::-webkit-details-marker { display:none; }
+details#filtri summary::before { content:"▸ "; color:#8a7050; }
+details#filtri[open] summary::before { content:"▾ "; }
+#filtri-sum { color:#8a7050; font-style:italic; letter-spacing:0; }
+.filtri-body { padding:4px 12px 12px; }
+.f-title { font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:#5a4020; margin:8px 0 5px; }
+.chips { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { background:none; border:1px solid #3a2a0a; color:#8a7050; font-family:inherit; font-size:0.72rem;
+  padding:6px 10px; border-radius:3px; cursor:pointer; }
+.chip.on { border-color:#d4a843; color:#d4a843; background:rgba(212,168,67,0.12); }
+.f-note { font-size:0.65rem; color:#6a5535; font-style:italic; margin-top:8px; line-height:1.4; }
+#reset-stato { background:none; border:0; color:#5a80a0; font-family:inherit; font-size:0.65rem; text-decoration:underline; cursor:pointer; margin-top:8px; }
+
+/* PUNTEGGIO */
+#score { display:flex; justify-content:space-between; font-size:0.68rem; color:#6a5535; font-style:italic; margin-bottom:8px; }
+#score b { color:#d4a843; font-weight:normal; font-style:normal; }
+
+/* DOMANDA */
+#card { background:#0e0a05; border:1px solid #5c3d0a; border-radius:4px; padding:14px; }
+#q-meta { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:8px; }
+.tag { font-size:0.58rem; letter-spacing:0.06em; text-transform:uppercase; color:#8a7050; border:1px solid #3a2a0a; padding:2px 6px; border-radius:2px; }
+.tag.ind { color:#c07030; border-color:#5c3d0a; text-transform:none; letter-spacing:0; font-style:italic; }
+.tag.rip { color:#e67e22; border-color:#e67e22; }
+#q-text { font-size:1.02rem; line-height:1.45; color:#e8d9b0; margin-bottom:12px; }
+#q-text .masked { color:#d4a843; }
+#q-text .clue { display:block; margin-top:8px; font-size:0.85rem; color:#c8b890; font-style:italic; line-height:1.5;
+  border-left:2px solid #3a2a0a; padding-left:9px; }
+#options { display:flex; flex-direction:column; gap:8px; }
+.opt { text-align:left; background:#1a1208; border:1px solid #3a2a0a; color:#e8d9b0; font-family:inherit;
+  font-size:0.9rem; padding:12px 12px; border-radius:4px; cursor:pointer; line-height:1.3; min-height:48px; }
+.opt:hover:not(:disabled) { border-color:#d4a843; }
+.opt:disabled { cursor:default; }
+.opt.giusta { border-color:#4f9a5a; background:rgba(79,154,90,0.18); color:#cfe8c8; }
+.opt.sbagliata { border-color:#c0392b; background:rgba(192,57,43,0.18); color:#f0c8c0; }
+.opt.spenta { opacity:0.45; }
+
+/* SCHEDA DOPO LA RISPOSTA */
+#esito { margin-top:12px; font-size:0.8rem; }
+#esito.ok { color:#7cc58a; }
+#esito.ko { color:#e07a6a; }
+#scheda { margin-top:10px; border-top:1px solid #2a1a00; padding-top:10px; }
+.s-item { margin-bottom:10px; }
+.s-title { font-size:0.9rem; color:#d4a843; }
+.s-sub { font-size:0.68rem; color:#6a5535; font-style:italic; margin:1px 0 3px; }
+.s-note { font-size:0.78rem; color:#c8b890; line-height:1.5; }
+.s-kin { font-size:0.75rem; color:#8a7050; font-style:italic; line-height:1.4; margin-top:3px; }
+.s-map { display:inline-block; margin-top:4px; font-size:0.72rem; color:#5a80a0; }
+#avanti { margin-top:12px; width:100%; background:#d4a843; color:#0e0a05; border:0; font-family:inherit;
+  font-size:0.9rem; padding:12px; border-radius:4px; cursor:pointer; }
+#vuoto { font-size:0.85rem; color:#8a7050; font-style:italic; line-height:1.5; text-align:center; padding:20px 0; }
+footer { font-size:0.6rem; color:#5a4020; font-style:italic; text-align:center; margin-top:16px; line-height:1.5; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ripasso</h1>
+  <a href="index.html">← Mappa</a>
+</header>
+<main>
+  <details id="filtri">
+    <summary>Filtri <span id="filtri-sum"></span></summary>
+    <div class="filtri-body">
+      <div class="f-title">Categorie</div>
+      <div class="chips" id="f-cat"></div>
+      <div class="f-title">Epoche</div>
+      <div class="chips" id="f-epoca"></div>
+      <div class="f-title">Modalità</div>
+      <div class="chips"><button class="chip" id="f-errori">Solo le domande sbagliate</button></div>
+      <div class="f-note">Le domande sbagliate tornano più spesso finché non rispondi giusto qualche volta.</div>
+      <button id="reset-stato">Azzera lo storico degli errori</button>
+    </div>
+  </details>
+
+  <div id="score"><span>Sessione: <b id="sc-ok">0</b> giuste su <b id="sc-tot">0</b></span><span id="sc-err"></span></div>
+
+  <div id="card">
+    <div id="q-meta"></div>
+    <div id="q-text"></div>
+    <div id="options"></div>
+    <div id="esito"></div>
+    <div id="scheda"></div>
+    <button id="avanti" hidden>Avanti →</button>
+  </div>
+  <footer>Domande generate dai dati della mappa (cartella data/). Le parentele vengono da fonti standard, da verificare su Giusfredi.</footer>
+</main>
+
+<script>
+(function () {
+  "use strict";
+
+  // ── UTILITÀ ────────────────────────────────────────────────────────────────
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function fy(y) { return y < 0 ? Math.abs(y) + " a.C." : y + " d.C."; }
+  function range(a, b) { return (b == null || b === a) ? fy(a) : (a < 0 && b < 0 ? Math.abs(a) + " – " + fy(b) : fy(a) + " – " + fy(b)); }
+  var ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII", "XIII", "XIV", "XV",
+               "XVI", "XVII", "XVIII", "XIX", "XX", "XXI", "XXII", "XXIII", "XXIV", "XXV", "XXVI", "XXVII", "XXVIII", "XXIX", "XXX",
+               "XXXI", "XXXII", "XXXIII", "XXXIV", "XXXV", "XXXVI", "XXXVII", "XXXVIII"];
+  function century(y) { return y < 0 ? Math.ceil(-y / 100) : -Math.ceil(y / 100); } // positivo = a.C.
+  function centLabel(c) { return ROMAN[c] + " sec. a.C."; }
+  function shuffle(a) { a = a.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+  function uniq(a) { var seen = {}; return a.filter(function (x) { if (seen[x]) return false; seen[x] = true; return true; }); }
+  // Sceglie n distrattori: prima dai gruppi "plausibili" (in ordine), poi dal resto, senza ripetere l'esatta risposta.
+  function distract(correct, tiers, n) {
+    var out = [], used = {}; used[correct] = true;
+    tiers.forEach(function (tier) {
+      shuffle(tier).forEach(function (x) { if (out.length < n && !used[x]) { used[x] = true; out.push(x); } });
+    });
+    return out.length >= n ? out : null;
+  }
+  var stInfo = function (s) { return STATO_INFO[s] || { label: s, regione: "" }; };
+
+  // Epoca (PERIODS) di un anno
+  function epocaOf(y) {
+    for (var i = 0; i < PERIODS.length; i++) if (y >= PERIODS[i].min && y < PERIODS[i].max) return PERIODS[i].id;
+    return y < PERIODS[0].min ? PERIODS[0].id : PERIODS[PERIODS.length - 1].id;
+  }
+  function periodsOverlapping(a, b) {
+    return PERIODS.filter(function (p) { return p.min < b && p.max > a; }).map(function (p) { return p.id; });
+  }
+
+  // Link alla mappa
+  function mapLink(anno, opt) {
+    var u = "index.html?anno=" + Math.round(Math.max(-3500, Math.min(-300, anno)));
+    if (opt && opt.citta) u += "&citta=" + encodeURIComponent(opt.citta);
+    else if (opt && opt.lat != null) u += "&lat=" + opt.lat + "&lng=" + opt.lng;
+    return u;
+  }
+
+  // ── SCHEDE (mostrate dopo la risposta) ───────────────────────────────────
+  function rulerCard(r) {
+    return { title: r.nome, sub: stInfo(r.stato).label + " · " + range(r.inizio, r.fine) + (r.ind ? " · date indicative" : ""),
+             note: r.note, kin: rulerKin(r), link: mapLink(Math.round((r.inizio + r.fine) / 2)) };
+  }
+  function cityCard(c) {
+    var civ = CIVS[c.civ] || { label: c.civ, regione: "" };
+    var y = Math.max(c.start, -3500);
+    return { title: c.name, sub: civ.label + " · " + civ.regione + " · attiva " + range(c.start, c.end) + (c.modern ? " · oggi " + c.modern : ""),
+             note: c.desc, link: mapLink(Math.round((y + Math.min(c.end, -300)) / 2), { citta: c.id }) };
+  }
+  function periodCard(p) {
+    return { title: p.label, sub: range(p.min, p.max), note: p.desc, link: mapLink(p.mid) };
+  }
+  function rpCard(p) {
+    return { title: p.nome, sub: p.regione + " · " + (p.ind ? range(p.inizio, p.fine) + " · date indicative" : p.etichetta),
+             note: p.nota || "", link: mapLink(p.fine == null ? p.inizio : Math.round((p.inizio + p.fine) / 2)) };
+  }
+  function eventCard(e) {
+    if (e.kind === "battaglia") {
+      var b = e.src;
+      return { title: b.nome, sub: fy(b.anno) + " · " + b.fazioni.map(function (f) { return f.nome + (f.ruolo === "vincitore" ? " (vince)" : ""); }).join(" – "),
+               note: [b.esito, b.desc].filter(Boolean).join(". "), link: mapLink(b.anno, { lat: b.lat, lng: b.lng }) };
+    }
+    var ev = e.src;
+    return { title: ev.titolo, sub: fy(ev.anno), note: ev.desc, link: mapLink(ev.anno, ev.city ? { citta: ev.city } : null) };
+  }
+
+  // ── DATI PREPARATI ─────────────────────────────────────────────────────────
+  // Sovrani: padre cercato prima nello stesso stato (alcuni nomi si ripetono: Šuppiluliuma I, Ethbaal)
+  var R = RULERS.map(function (r, i) { return { r: r, i: i, mid: (r.inizio + r.fine) / 2 }; });
+  function findRuler(nome, stato) {
+    var same = R.filter(function (x) { return x.r.nome === nome && x.r.stato === stato; });
+    if (same.length) return same[0];
+    var any = R.filter(function (x) { return x.r.nome === nome; });
+    return any.length ? any[0] : null;
+  }
+  R.forEach(function (x) { x.padre = x.r.padre ? findRuler(x.r.padre, x.r.stato) : null; x.figli = []; });
+  R.forEach(function (x) { if (x.padre) x.padre.figli.push(x); });
+  function isFemale(x) { return /^figlia\b/i.test(x.r.parentela || ""); }
+  var nameCount = {};
+  R.forEach(function (x) { nameCount[x.r.nome] = (nameCount[x.r.nome] || 0) + 1; });
+  function rName(x) { return nameCount[x.r.nome] > 1 ? x.r.nome + " (" + stInfo(x.r.stato).label + ")" : x.r.nome; }
+
+  // Successioni per stato: in ordine di inizio, saltando co-reggenti (inizio ben prima della fine del precedente)
+  var NO_SEQ = { anatolia_occ: 1, amurru: 1, hyksos: 1 };
+  var SEQ = {};
+  Object.keys(STATO_INFO).forEach(function (s) {
+    if (NO_SEQ[s]) return;
+    var list = R.filter(function (x) { return x.r.stato === s; }).sort(function (a, b) { return a.r.inizio - b.r.inizio; });
+    var out = [];
+    list.forEach(function (x) {
+      var prev = out[out.length - 1];
+      if (prev && (x.r.inizio < prev.r.fine - 3 || x.r.inizio === prev.r.inizio)) return;
+      out.push(x);
+    });
+    SEQ[s] = out;
+  });
+
+  // Eventi + battaglie (come nella linea del tempo: le battaglie già tra gli eventi non si ripetono)
+  var EV = EVENTS.filter(function (e) { return e.anno >= -3500; }).map(function (e) { return { kind: "evento", title: e.titolo, anno: e.anno, src: e }; })
+    .concat(BATTLES.filter(function (b) { return !EVENTS.some(function (e) { return Math.abs(e.anno - b.anno) <= 2; }); })
+      .map(function (b) { return { kind: "battaglia", title: b.nome, anno: b.anno, src: b }; }));
+
+  var REGIONI = uniq(REGIONAL_PERIODS.map(function (p) { return p.regione; }));
+
+  // ── GENERATORI ─────────────────────────────────────────────────────────────
+  // Ogni "spec" ha: key (per lo storico errori), cat, year, make() → domanda o null
+  // domanda: { text (html), meta: [tag], ind, options: [testo], correct: testo, cards: [scheda] }
+  var SPECS = [];
+  function add(key, cat, year, make) { SPECS.push({ key: key, cat: cat, epoca: epocaOf(year), make: make }); }
+
+  // --- SOVRANI ---
+  R.forEach(function (x) {
+    var r = x.r, st = stInfo(r.stato);
+    // re → stato
+    if (!/\(Mar/.test(r.nome)) add("re-stato:" + x.i, "sovrani", x.mid, function () {
+      var same = {}; R.forEach(function (y) { if (y.r.nome === r.nome) same[stInfo(y.r.stato).label] = true; });
+      var near = [], region = [], rest = [];
+      Object.keys(STATO_INFO).forEach(function (s) {
+        var lab = stInfo(s).label; if (same[lab]) return;
+        var contemporary = R.some(function (y) { return y.r.stato === s && y.r.inizio <= r.fine + 150 && y.r.fine >= r.inizio - 150; });
+        if (contemporary) near.push(lab); else if (stInfo(s).regione === st.regione) region.push(lab); else rest.push(lab);
+      });
+      var d = distract(st.label, [near, region, rest], 3); if (!d) return null;
+      return { text: "Di quale stato fu sovrano <b>" + esc(r.nome) + "</b>?", ind: r.ind, options: [st.label].concat(d), correct: st.label, cards: [rulerCard(r)] };
+    });
+    // re → epoca
+    add("re-epoca:" + x.i, "sovrani", x.mid, function () {
+      var corr = PERIODS.filter(function (p) { return p.id === epocaOf(x.mid); })[0];
+      var over = periodsOverlapping(r.inizio, r.fine + 1);
+      var others = PERIODS.filter(function (p) { return over.indexOf(p.id) < 0; })
+        .sort(function (a, b) { return Math.abs(a.mid - x.mid) - Math.abs(b.mid - x.mid); }).map(function (p) { return p.label; });
+      var d = distract(corr.label, [others.slice(0, 3), others.slice(3)], 3); if (!d) return null;
+      return { text: "In quale epoca regnò <b>" + esc(rName(x)) + "</b>?", ind: r.ind, options: [corr.label].concat(d), correct: corr.label, cards: [rulerCard(r), periodCard(corr)] };
+    });
+    // padre di X / nonno di X
+    if (x.padre) add("re-padre:" + x.i, "sovrani", x.mid, function () {
+      var p = x.padre, corr = rName(p);
+      var same = R.filter(function (y) { return y !== x && y !== p && y.r.stato === r.stato && Math.abs(y.mid - p.mid) < 200; }).map(rName);
+      var region = R.filter(function (y) { return y !== x && y !== p && stInfo(y.r.stato).regione === st.regione && Math.abs(y.mid - p.mid) < 300; }).map(rName);
+      var d = distract(corr, [same, region], 3); if (!d) return null;
+      return { text: "Chi era il padre di <b>" + esc(rName(x)) + "</b>?", ind: r.ind, options: [corr].concat(d), correct: corr, cards: [rulerCard(r), rulerCard(p.r)] };
+    });
+    if (x.padre && x.padre.padre) add("re-nonno:" + x.i, "sovrani", x.mid, function () {
+      var g = x.padre.padre, corr = rName(g);
+      var excl = [x, x.padre, g];
+      var same = R.filter(function (y) { return excl.indexOf(y) < 0 && y.r.stato === r.stato && Math.abs(y.mid - g.mid) < 250; }).map(rName);
+      var region = R.filter(function (y) { return excl.indexOf(y) < 0 && stInfo(y.r.stato).regione === st.regione && Math.abs(y.mid - g.mid) < 300; }).map(rName);
+      var d = distract(corr, [same, region], 3); if (!d) return null;
+      return { text: "Chi era il nonno di <b>" + esc(rName(x)) + "</b> (padre di suo padre)?", ind: r.ind, options: [corr].concat(d), correct: corr,
+               cards: [rulerCard(r), rulerCard(x.padre.r), rulerCard(g.r)] };
+    });
+    // figlio di X
+    if (x.figli.length) add("re-figlio:" + x.i, "sovrani", x.mid, function () {
+      var f = pick(x.figli), corr = rName(f);
+      var excl = [x].concat(x.figli);
+      var same = R.filter(function (y) { return excl.indexOf(y) < 0 && y.r.stato === f.r.stato && Math.abs(y.mid - f.mid) < 200; }).map(rName);
+      var region = R.filter(function (y) { return excl.indexOf(y) < 0 && stInfo(y.r.stato).regione === stInfo(f.r.stato).regione && Math.abs(y.mid - f.mid) < 300; }).map(rName);
+      var d = distract(corr, [same, region], 3); if (!d) return null;
+      var fem = x.figli.some(isFemale);
+      return { text: "Chi di questi sovrani era " + (fem ? "figlio o figlia" : "figlio") + " di <b>" + esc(rName(x)) + "</b>?", ind: r.ind,
+               options: [corr].concat(d), correct: corr, cards: [rulerCard(f.r), rulerCard(r)] };
+    });
+  });
+  // chi regnò per primo (stessa regione, distanze di almeno 20 anni)
+  Object.keys(SEQ).forEach(function (s) {
+    SEQ[s].forEach(function (x) {
+      add("re-prima:" + x.i, "sovrani", x.mid, function () {
+        var reg = stInfo(s).regione;
+        var later = R.filter(function (y) { return y !== x && y.r.inizio >= x.r.inizio + 20 && y.r.inizio <= x.r.inizio + 400 && !/\(Mar/.test(y.r.nome); });
+        var sameSt = later.filter(function (y) { return y.r.stato === s; }), sameReg = later.filter(function (y) { return stInfo(y.r.stato).regione === reg; });
+        var pool = shuffle(sameSt).concat(shuffle(sameReg)), chosen = [];
+        pool.forEach(function (y) { if (chosen.length < 3 && chosen.indexOf(y) < 0 && rName(y) !== rName(x)) chosen.push(y); });
+        if (chosen.length < 3) return null;
+        return { text: "Quale di questi sovrani salì al trono per primo?", ind: x.r.ind || chosen.some(function (y) { return y.r.ind; }),
+                 options: [rName(x)].concat(chosen.map(rName)), correct: rName(x), cards: [x].concat(chosen).map(function (y) { return rulerCard(y.r); }) };
+      });
+    });
+  });
+  // completa la sequenza dinastica
+  Object.keys(SEQ).forEach(function (s) {
+    var seq = SEQ[s];
+    for (var k = 0; k + 3 < seq.length; k++) (function (w) {
+      // niente buchi oltre 60 anni nella finestra
+      for (var j = 1; j < 4; j++) if (w[j].r.inizio - w[j - 1].r.fine > 60) return;
+      var hole = 1 + Math.floor(Math.random() * 2); // il sovrano nascosto: il secondo o il terzo
+      add("re-seq:" + s + ":" + w[0].i, "sovrani", w[1].mid, function () {
+        var h = w[hole], corr = rName(h);
+        var others = seq.filter(function (y) { return w.indexOf(y) < 0; })
+          .sort(function (a, b) { return Math.abs(a.mid - h.mid) - Math.abs(b.mid - h.mid); }).map(rName);
+        var d = distract(corr, [others.slice(0, 5), others.slice(5)], 3); if (!d) return null;
+        var line = w.map(function (y, j) { return j === hole ? "<span class='masked'>?</span>" : esc(y.r.nome); }).join(" → ");
+        return { text: "Completa la successione dei sovrani di <b>" + esc(stInfo(s).label) + "</b>:<span class='clue'>" + line + "</span>",
+                 meta: ["nell'elenco della mappa: possono mancare sovrani intermedi"], ind: w.some(function (y) { return y.r.ind; }),
+                 options: [corr].concat(d), correct: corr, cards: w.map(function (y) { return rulerCard(y.r); }) };
+      });
+    })(seq.slice(k, k + 4));
+  });
+
+  // --- CITTÀ ---
+  function dist(a, b) { var dx = (a.lng - b.lng) * Math.cos((a.lat + b.lat) / 2 * Math.PI / 180); var dy = a.lat - b.lat; return Math.sqrt(dx * dx + dy * dy); }
+  function cityVariants(c) {
+    var v = [c.name]; var m = c.name.match(/^(.*?)\s*\((.*)\)$/);
+    if (m) { v.push(m[1], m[2]); }
+    return v.filter(Boolean).sort(function (a, b) { return b.length - a.length; });
+  }
+  CITIES.forEach(function (c, ci) {
+    var civ = CIVS[c.civ] || { label: c.civ };
+    var mid = (Math.max(c.start, -3500) + Math.min(c.end, -300)) / 2;
+    // città → civiltà
+    add("citta-civ:" + c.id, "citta", mid, function () {
+      var near = CITIES.filter(function (o) { return o !== c; }).sort(function (a, b) { return dist(a, c) - dist(b, c); })
+        .map(function (o) { return (CIVS[o.civ] || { label: o.civ }).label; });
+      var all = Object.keys(CIVS).map(function (k) { return CIVS[k].label; });
+      var d = distract(civ.label, [uniq(near).slice(0, 4), all], 3); if (!d) return null;
+      return { text: "A quale civiltà appartiene la città di <b>" + esc(c.name) + "</b>?", options: [civ.label].concat(d), correct: civ.label, cards: [cityCard(c)] };
+    });
+    // città attiva in un secolo
+    add("citta-secolo:" + c.id, "citta", mid, function () {
+      var lo = Math.max(c.start, -3500), hi = Math.min(c.end, -300);
+      var cents = []; for (var k = century(lo); k >= century(hi); k--) { var a = -k * 100, b = a + 99; if (a >= lo && b <= hi) cents.push(k); }
+      if (!cents.length) return null;
+      var k = pick(cents), a = -k * 100, b = a + 99;
+      var inactive = function (o) { return o.end < a || o.start > b; };
+      var near = CITIES.filter(function (o) { return o !== c && inactive(o) && (o.civ === c.civ || dist(o, c) < 6); }).map(function (o) { return o.name; });
+      var rest = CITIES.filter(function (o) { return o !== c && inactive(o); }).map(function (o) { return o.name; });
+      var d = distract(c.name, [near, rest], 3); if (!d) return null;
+      return { text: "Quale di queste città era attiva nel <b>" + centLabel(k) + "</b>?", options: [c.name].concat(d), correct: c.name,
+               cards: [cityCard(c)].concat(CITIES.filter(function (o) { return d.indexOf(o.name) >= 0; }).map(cityCard)) };
+    });
+    // riconosci dalla descrizione
+    if (c.desc) add("citta-desc:" + c.id, "citta", mid, function () {
+      var txt = esc(c.desc);
+      cityVariants(c).forEach(function (v) { txt = txt.split(esc(v)).join("<span class='masked'>___</span>"); });
+      var near = CITIES.filter(function (o) { return o !== c && (o.civ === c.civ || dist(o, c) < 5); }).map(function (o) { return o.name; });
+      var rest = CITIES.filter(function (o) { return o !== c; }).map(function (o) { return o.name; });
+      var d = distract(c.name, [near, rest], 3); if (!d) return null;
+      return { text: "Quale città è descritta?<span class='clue'>" + txt + "</span>", options: [c.name].concat(d), correct: c.name, cards: [cityCard(c)] };
+    });
+  });
+
+  // --- PERIODI ---
+  PERIODS.forEach(function (p, pi) {
+    add("epoca-date:" + p.id, "periodi", p.mid, function () {
+      var corr = range(p.min, p.max);
+      var near = PERIODS.filter(function (o) { return o !== p; }).sort(function (a, b) { return Math.abs(a.mid - p.mid) - Math.abs(b.mid - p.mid); })
+        .map(function (o) { return range(o.min, o.max); });
+      // varianti spostate di 100-200 anni, per avere distrattori vicini
+      var shifted = [[-100, 0], [0, 100], [100, 100], [-100, -100], [0, -50]].map(function (s) { return range(p.min + s[0], p.max + s[1]); });
+      var d = distract(corr, [near.slice(0, 2), shifted, near], 3); if (!d) return null;
+      return { text: "Quali sono le date dell'epoca <b>" + esc(p.label) + "</b>?", options: [corr].concat(d), correct: corr, cards: [periodCard(p)] };
+    });
+    add("epoca-desc:" + p.id, "periodi", p.mid, function () {
+      var d = distract(p.label, [PERIODS.filter(function (o) { return o !== p && Math.abs(o.mid - p.mid) < 700; }).map(function (o) { return o.label; }),
+                                PERIODS.map(function (o) { return o.label; })], 3); if (!d) return null;
+      return { text: "Quale epoca è descritta?<span class='clue'>" + esc(p.desc) + "</span>", options: [p.label].concat(d), correct: p.label, cards: [periodCard(p)] };
+    });
+  });
+  REGIONAL_PERIODS.forEach(function (p, i) {
+    var y = p.fine == null ? p.inizio : (p.inizio + p.fine) / 2;
+    var lab = function (o) { return o.ind ? range(o.inizio, o.fine) + " (indicative)" : o.etichetta; };
+    // periodo → date
+    add("rp-date:" + i, "periodi", y, function () {
+      var corr = lab(p);
+      // distrattori dello stesso tipo: periodi con periodi, eventi puntuali con eventi puntuali
+      var kind = function (o) { return o !== p && (o.fine == null) === (p.fine == null); };
+      var same = REGIONAL_PERIODS.filter(function (o) { return kind(o) && o.regione === p.regione; }).map(lab);
+      var other = REGIONAL_PERIODS.filter(function (o) { return kind(o) && Math.abs(o.inizio - p.inizio) < 600; }).map(lab);
+      var shifted = p.fine == null ? [-10, 10, -50, 50].map(function (d) { return fy(p.inizio + d); }) : [];
+      var d = distract(corr, [same, other, shifted], 3); if (!d) return null;
+      return { text: (p.fine == null ? "Quando avviene" : "Quali sono le date di") + " <b>" + esc(p.nome) + "</b> (" + esc(p.regione) + ")?", ind: p.ind,
+               options: [corr].concat(d), correct: corr, cards: [rpCard(p)] };
+    });
+    // periodo → regione (solo se il nome non è ambiguo tra regioni)
+    var dup = REGIONAL_PERIODS.some(function (o) { return o !== p && o.nome === p.nome; });
+    if (!dup) add("rp-regione:" + i, "periodi", y, function () {
+      var d = distract(p.regione, [REGIONI], 3); if (!d) return null;
+      return { text: "In quale regione si colloca <b>" + esc(p.nome) + "</b>?", ind: p.ind, options: [p.regione].concat(d), correct: p.regione, cards: [rpCard(p)] };
+    });
+    // quale viene prima
+    add("rp-prima:" + i, "periodi", y, function () {
+      var later = REGIONAL_PERIODS.filter(function (o) { return o.inizio >= p.inizio + 50 && o.inizio <= p.inizio + 700 && o.nome !== p.nome; });
+      var same = later.filter(function (o) { return o.regione === p.regione; });
+      var pool = shuffle(same).concat(shuffle(later)), ch = [];
+      pool.forEach(function (o) { if (ch.length < 3 && ch.indexOf(o) < 0 && !ch.some(function (c) { return c.nome === o.nome; })) ch.push(o); });
+      if (ch.length < 3) return null;
+      var nm = function (o) { return o.nome + " (" + o.regione + ")"; };
+      return { text: "Quale di questi periodi inizia per primo?", ind: p.ind || ch.some(function (o) { return o.ind; }),
+               options: [nm(p)].concat(ch.map(nm)), correct: nm(p), cards: [p].concat(ch).map(rpCard) };
+    });
+  });
+
+  // --- EVENTI E BATTAGLIE ---
+  EV.forEach(function (e, i) {
+    var k = century(e.anno);
+    // evento → secolo
+    add("ev-secolo:" + e.kind + ":" + e.title, "eventi", e.anno, function () {
+      var corr = centLabel(k);
+      var d = distract(corr, [[k - 1, k + 1].filter(function (c) { return c > 0 && c < ROMAN.length; }).map(centLabel),
+                               [k - 2, k + 2, k + 3, k - 3].filter(function (c) { return c > 0 && c < ROMAN.length; }).map(centLabel)], 3);
+      if (!d) return null;
+      return { text: "In quale secolo: <b>" + esc(e.title) + "</b>?", options: [corr].concat(d), correct: corr, cards: [eventCard(e)] };
+    });
+    // evento → anno (con anni di eventi vicini)
+    add("ev-anno:" + e.kind + ":" + e.title, "eventi", e.anno, function () {
+      var corr = fy(e.anno);
+      var near = EV.filter(function (o) { return o !== e && Math.abs(o.anno - e.anno) >= 10 && Math.abs(o.anno - e.anno) <= 250; }).map(function (o) { return fy(o.anno); });
+      var shifted = [-50, 50, -100, 100, -30, 30].map(function (s) { return fy(e.anno + s); });
+      var d = distract(corr, [near, shifted], 3); if (!d) return null;
+      return { text: "In che anno: <b>" + esc(e.title) + "</b>?", options: [corr].concat(d), correct: corr, cards: [eventCard(e)] };
+    });
+    // ordine cronologico
+    add("ev-prima:" + e.kind + ":" + e.title, "eventi", e.anno, function () {
+      var later = shuffle(EV.filter(function (o) { return o.anno >= e.anno + 30 && o.anno <= e.anno + 1000; })), ch = [];
+      later.forEach(function (o) { if (ch.length < 3 && o.title !== e.title) ch.push(o); });
+      if (ch.length < 3) return null;
+      return { text: "Quale di questi avvenne per primo?", options: [e.title].concat(ch.map(function (o) { return o.title; })), correct: e.title,
+               cards: [e].concat(ch).map(eventCard) };
+    });
+  });
+  // chi ha combattuto / chi ha vinto
+  function fazStr(b) { return b.fazioni.map(function (f) { return f.nome; }).join(" contro "); }
+  BATTLES.forEach(function (b) {
+    var e = { kind: "battaglia", title: b.nome, anno: b.anno, src: b };
+    add("bt-chi:" + b.id, "eventi", b.anno, function () {
+      var corr = fazStr(b);
+      var near = BATTLES.filter(function (o) { return o !== b; }).sort(function (x, y) { return Math.abs(x.anno - b.anno) - Math.abs(y.anno - b.anno); }).map(fazStr);
+      var d = distract(corr, [near.slice(0, 5), near], 3); if (!d) return null;
+      return { text: "Chi si affrontò nella <b>" + esc(b.nome) + "</b> (" + fy(b.anno) + ")?", options: [corr].concat(d), correct: corr, cards: [eventCard(e)] };
+    });
+    var win = b.fazioni.filter(function (f) { return f.ruolo === "vincitore"; });
+    if (win.length === 1) add("bt-vince:" + b.id, "eventi", b.anno, function () {
+      var corr = win[0].nome;
+      var own = b.fazioni.filter(function (f) { return f !== win[0]; }).map(function (f) { return f.nome; });
+      var near = [];
+      BATTLES.filter(function (o) { return o !== b && Math.abs(o.anno - b.anno) < 300; }).forEach(function (o) { o.fazioni.forEach(function (f) { near.push(f.nome); }); });
+      var d = distract(corr, [own, near], 3); if (!d) return null;
+      return { text: "Chi vinse: <b>" + esc(b.nome) + "</b> (" + fy(b.anno) + ")?", options: [corr].concat(d), correct: corr, cards: [eventCard(e)] };
+    });
+  });
+
+  // ── STATO (localStorage, sempre in try/catch) ─────────────────────────────
+  var LS = "voa-ripasso-v1";
+  var mem = { stats: {}, cat: null, epoche: null, errori: false };
+  try { var raw = localStorage.getItem(LS); if (raw) { var o = JSON.parse(raw); if (o && typeof o === "object") mem = Object.assign(mem, o); } } catch (e) {}
+  function save() { try { localStorage.setItem(LS, JSON.stringify(mem)); } catch (e) {} }
+  function stat(k) { return mem.stats[k] || (mem.stats[k] = { ok: 0, ko: 0, debt: 0 }); }
+
+  var CATS = [{ id: "sovrani", label: "Sovrani" }, { id: "citta", label: "Città" }, { id: "periodi", label: "Periodi" }, { id: "eventi", label: "Eventi e battaglie" }];
+  var selCat = {}, selEp = {};
+  CATS.forEach(function (c) { selCat[c.id] = !mem.cat || mem.cat.indexOf(c.id) >= 0; });
+  PERIODS.forEach(function (p) { selEp[p.id] = !mem.epoche || mem.epoche.indexOf(p.id) >= 0; });
+
+  function chips(el, items, sel, onChange) {
+    el.innerHTML = "";
+    items.forEach(function (it) {
+      var b = document.createElement("button");
+      b.className = "chip" + (sel[it.id] ? " on" : ""); b.textContent = it.label; b.type = "button";
+      b.onclick = function () {
+        sel[it.id] = !sel[it.id];
+        if (!Object.keys(sel).some(function (k) { return sel[k]; })) sel[it.id] = true; // almeno uno
+        b.classList.toggle("on", sel[it.id]); onChange();
+      };
+      el.appendChild(b);
+    });
+  }
+  function onFilter() {
+    mem.cat = Object.keys(selCat).filter(function (k) { return selCat[k]; });
+    mem.epoche = Object.keys(selEp).filter(function (k) { return selEp[k]; });
+    save(); summary(); next();
+  }
+  chips(document.getElementById("f-cat"), CATS, selCat, onFilter);
+  chips(document.getElementById("f-epoca"), PERIODS.map(function (p) { return { id: p.id, label: p.short }; }), selEp, onFilter);
+  var bErr = document.getElementById("f-errori");
+  bErr.classList.toggle("on", !!mem.errori);
+  bErr.onclick = function () { mem.errori = !mem.errori; bErr.classList.toggle("on", mem.errori); save(); summary(); next(); };
+  document.getElementById("reset-stato").onclick = function () {
+    if (!confirm("Azzerare lo storico delle risposte sbagliate?")) return;
+    mem.stats = {}; save(); summary(); next();
+  };
+
+  function pool() {
+    return SPECS.filter(function (s) {
+      if (!selCat[s.cat] || !selEp[s.epoca]) return false;
+      if (mem.errori) return (mem.stats[s.key] && mem.stats[s.key].debt > 0);
+      return true;
+    });
+  }
+  function summary() {
+    var nc = mem.cat ? mem.cat.length : CATS.length, ne = mem.epoche ? mem.epoche.length : PERIODS.length;
+    var errs = Object.keys(mem.stats).filter(function (k) { return mem.stats[k].debt > 0; }).length;
+    document.getElementById("filtri-sum").textContent = "· " + (nc === CATS.length ? "tutte le categorie" : nc + " categorie") + ", " +
+      (ne === PERIODS.length ? "tutte le epoche" : ne + " epoche") + (mem.errori ? ", solo errori" : "") + " · " + pool().length + " domande";
+    document.getElementById("sc-err").textContent = errs ? errs + " da ripassare" : "";
+  }
+
+  // Scelta pesata: le domande sbagliate (debt > 0) pesano molto di più; le ultime uscite non si ripetono
+  var recent = [];
+  function choose() {
+    var p = pool().filter(function (s) { return recent.indexOf(s.key) < 0; });
+    if (!p.length) p = pool();
+    if (!p.length) return null;
+    var w = p.map(function (s) { var st = mem.stats[s.key]; return 1 + (st ? st.debt * 6 : 0); });
+    var tot = w.reduce(function (a, b) { return a + b; }, 0), r = Math.random() * tot;
+    for (var i = 0; i < p.length; i++) { r -= w[i]; if (r <= 0) return p[i]; }
+    return p[p.length - 1];
+  }
+
+  // ── INTERFACCIA ────────────────────────────────────────────────────────────
+  var elMeta = document.getElementById("q-meta"), elText = document.getElementById("q-text"), elOpts = document.getElementById("options");
+  var elEsito = document.getElementById("esito"), elScheda = document.getElementById("scheda"), elAvanti = document.getElementById("avanti");
+  var sess = { ok: 0, tot: 0 };
+  var CATLAB = {}; CATS.forEach(function (c) { CATLAB[c.id] = c.label; });
+  var EPLAB = {}; PERIODS.forEach(function (p) { EPLAB[p.id] = p.short; });
+
+  function next() {
+    elEsito.textContent = ""; elEsito.className = ""; elScheda.innerHTML = ""; elAvanti.hidden = true;
+    var q = null, spec = null;
+    for (var tries = 0; tries < 40 && !q; tries++) { spec = choose(); if (!spec) break; q = spec.make(); }
+    if (!q) {
+      elMeta.innerHTML = ""; elOpts.innerHTML = "";
+      elText.innerHTML = "<div id='vuoto'>" + (mem.errori ? "Nessuna domanda sbagliata da ripassare con questi filtri. Ottimo!" : "Nessuna domanda con questi filtri.") + "</div>";
+      return;
+    }
+    recent.push(spec.key); if (recent.length > 15) recent.shift();
+    var st = mem.stats[spec.key];
+    elMeta.innerHTML = "<span class='tag'>" + esc(CATLAB[spec.cat]) + "</span><span class='tag'>" + esc(EPLAB[spec.epoca]) + "</span>" +
+      (st && st.debt > 0 ? "<span class='tag rip'>da ripassare</span>" : "") +
+      (q.ind ? "<span class='tag ind'>date indicative</span>" : "") +
+      (q.meta || []).map(function (m) { return "<span class='tag ind'>" + esc(m) + "</span>"; }).join("");
+    elText.innerHTML = q.text;
+    elOpts.innerHTML = "";
+    shuffle(uniq(q.options)).forEach(function (o) {
+      var b = document.createElement("button");
+      b.className = "opt"; b.type = "button"; b.textContent = o;
+      b.onclick = function () { answer(spec, q, o); };
+      elOpts.appendChild(b);
+    });
+  }
+
+  function answer(spec, q, chosen) {
+    var ok = chosen === q.correct, st = stat(spec.key);
+    if (ok) { st.ok++; st.debt = Math.max(0, st.debt - 1); sess.ok++; } else { st.ko++; st.debt = Math.min(st.debt + 2, 6); }
+    sess.tot++; save();
+    Array.prototype.forEach.call(elOpts.children, function (b) {
+      b.disabled = true;
+      if (b.textContent === q.correct) b.classList.add("giusta");
+      else if (b.textContent === chosen) b.classList.add("sbagliata");
+      else b.classList.add("spenta");
+    });
+    elEsito.className = ok ? "ok" : "ko";
+    elEsito.textContent = ok ? "✓ Giusto" : "✗ Sbagliato: la risposta è «" + q.correct + "». Tornerà più spesso.";
+    elScheda.innerHTML = q.cards.map(function (c) {
+      return "<div class='s-item'><div class='s-title'>" + esc(c.title) + "</div><div class='s-sub'>" + esc(c.sub) + "</div>" +
+        (c.note ? "<div class='s-note'>" + esc(c.note) + "</div>" : "") +
+        (c.kin ? "<div class='s-kin'>Parentela: " + esc(c.kin) + "</div>" : "") +
+        (c.link ? "<a class='s-map' href='" + esc(c.link) + "'>vedi sulla mappa →</a>" : "") + "</div>";
+    }).join("");
+    document.getElementById("sc-ok").textContent = sess.ok;
+    document.getElementById("sc-tot").textContent = sess.tot;
+    summary();
+    elAvanti.hidden = false; elAvanti.focus({ preventScroll: true });
+  }
+  elAvanti.onclick = function () { next(); window.scrollTo(0, 0); };
+
+  summary();
+  next();
+})();
+</script>
+</body>
+</html>

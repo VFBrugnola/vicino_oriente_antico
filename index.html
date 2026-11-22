@@ -11,6 +11,7 @@
 <script src="data/events.js"></script>
 <script src="data/cities.js"></script>
 <script src="data/rulers.js"></script>
+<script src="data/stati.js"></script>
 <script src="data/routes.js"></script>
 <script src="data/battles.js"></script>
 <script src="data/archaeology.js"></script>
@@ -48,6 +49,9 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 .borders-badge b { color:#d4a843; font-weight:normal; }
 #toggle-borders { flex-shrink:0; background:none; border:1px solid #3a2a0a; color:#8a7050;
   font-family:"Georgia",serif; font-size:0.6rem; padding:3px 9px; cursor:pointer; border-radius:2px; white-space:nowrap; }
+#link-ripasso { flex-shrink:0; border:1px solid #5c3d0a; color:#d4a843; font-family:"Georgia",serif;
+  font-size:0.6rem; padding:3px 9px; border-radius:2px; white-space:nowrap; text-decoration:none; }
+#link-ripasso:hover { background:rgba(212,168,67,0.12); }
 #toggle-borders.active { border-color:#d4a843; color:#d4a843; background:rgba(212,168,67,0.12); }
 
 /* RULERS PANEL */
@@ -96,6 +100,9 @@ header p { font-size:0.62rem; color:#8a7050; font-style:italic; }
 }
 .ruler-note {
   font-size:0.58rem; color:#6a5535; line-height:1.3; margin-top:1px;
+}
+.ruler-kin {
+  font-size:0.58rem; color:#8a7050; font-style:italic; line-height:1.3; margin-top:1px;
 }
 #rulers-empty {
   font-size:0.65rem; color:#4a3820; font-style:italic;
@@ -343,6 +350,7 @@ body.tl-full #timeline-drawer { flex:1; height:auto; }
   #toggle-battles  { font-size:0.56rem; padding:3px 7px; }
   #toggle-routes   { font-size:0.56rem; padding:3px 7px; margin-left:0; }
   #toggle-timeline { font-size:0.56rem; padding:3px 7px; }
+  #link-ripasso    { font-size:0.56rem; padding:3px 7px; }
   #timeline-drawer { height:50vh; min-height:0; }
 
   /* Timeline */
@@ -397,6 +405,7 @@ body.tl-full #timeline-drawer { flex:1; height:auto; }
   <button id="toggle-arch" onclick="toggleArch(this)" title="Mostra/nascondi scoperte archeologiche">⛏ Archeologia</button>
   <button id="toggle-battles" onclick="toggleBattles(this)" title="Mostra/nascondi battaglie e assedi">⚔ Battaglie</button>
   <button id="toggle-routes" onclick="toggleRoutes(this)" title="Mostra/nascondi le rotte commerciali">⚓ Rotte commerciali</button>
+  <a id="link-ripasso" href="ripasso.html" title="Domande di ripasso su sovrani, città, periodi ed eventi">✎ Ripasso</a>
 </div>
 
 <div id="timeline-bar">
@@ -446,33 +455,7 @@ var TIPO_ICONS = {
   culturale: "📚", scientifico: "🔭"
 };
 
-// ── STATI → ETICHETTE E COLORI ────────────────────────────────────────────────
-var STATO_INFO = {
-  egitto:         { label:"Egitto",         colore:"#f1c40f" },
-  ittiti:         { label:"Ittiti",         colore:"#a0522d" },
-  assiria:        { label:"Assiria",        colore:"#c07030" },
-  babilonia:      { label:"Babilonia",      colore:"#8e44ad" },
-  mitanni:        { label:"Mittani",        colore:"#16a085" },
-  ugarit:         { label:"Ugarit",         colore:"#c8a000" },
-  elam:           { label:"Elam",           colore:"#e74c3c" },
-  karkemish:      { label:"Karkemish",      colore:"#795548" },
-  urartu:         { label:"Urartu",         colore:"#9b59b6" },
-  tiro:           { label:"Tiro",           colore:"#e67e22" },
-  biblo:          { label:"Biblo",          colore:"#f39c12" },
-  damasco:        { label:"Damasco",        colore:"#27ae60" },
-  samal:          { label:"Sam'al",         colore:"#2ecc71" },
-  israele_unito:  { label:"Israele unito",  colore:"#3498db" },
-  israele:        { label:"Israele (Nord)", colore:"#2980b9" },
-  giuda:          { label:"Giuda (Sud)",    colore:"#1abc9c" },
-  moab:           { label:"Moab",           colore:"#95a5a6" },
-  edom:           { label:"Edom",           colore:"#7f8c8d" },
-  ur:             { label:"Ur III",         colore:"#b07cc6" },
-  hyksos:         { label:"Hyksos",         colore:"#c9a227" },
-  patina:         { label:"Patina (Kunulua)", colore:"#8d6e63" },
-  amurru:         { label:"Amurru",         colore:"#b8a040" },
-  anatolia_occ:   { label:"Anatolia occidentale", colore:"#b5651d" },
-  persiana:       { label:"Persia achemenide", colore:"#1abc9c" }
-};
+// STATO_INFO (etichette e colori degli stati) è in data/stati.js
 
 // ── PERIODO BUTTONS ───────────────────────────────────────────────────────────
 var periodBar = document.getElementById("period-bar");
@@ -583,7 +566,7 @@ function renderRulers(year) {
     byStato[r.stato].push(r);
   });
   // Ordine preferenziale degli stati (grandi potenze prima)
-  var statiOrder = ["egitto","hyksos","ittiti","assiria","ur","babilonia","mitanni","persiana",
+  var statiOrder = ["egitto","hyksos","ittiti","assiria","akkad","ur","babilonia","mitanni","persiana",
                     "ugarit","amurru","elam","karkemish","patina","urartu","anatolia_occ","tiro","biblo","damasco",
                     "samal","israele_unito","israele","giuda","moab","edom"];
   var statiAttivi = Object.keys(byStato).sort(function(a,b) {
@@ -603,6 +586,7 @@ function renderRulers(year) {
       html += "<div class='ruler-name'>" + r.nome + "</div>";
       html += "<div class='ruler-dates'>" + formatYear(r.inizio) + " – " + formatYear(r.fine) + (r.ind ? " · date indicative" : "") + "</div>";
       if (r.note) html += "<div class='ruler-note'>" + r.note + "</div>";
+      if (rulerKin(r)) html += "<div class='ruler-kin'>" + rulerKin(r) + "</div>";
       html += "</div>";
       html += "</div>";
     });
@@ -1083,6 +1067,25 @@ function toggleTimeline(force) {
   if (open) Timeline.show(); else Timeline.hide();
   setTimeout(function() { map.invalidateSize(); }, 50);
 }
+
+// ── PARAMETRI URL ─────────────────────────────────────────────────────────────
+// index.html?anno=-701&citta=lachish  oppure  ?anno=-853&lat=35.4&lng=36.5
+// (li usa ripasso.html per il link "vedi sulla mappa")
+(function() {
+  var q;
+  try { q = new URLSearchParams(location.search); } catch (e) { return; }
+  var anno = parseInt(q.get("anno"), 10);
+  if (!isNaN(anno)) setYearFromTimeline(Math.max(-3500, Math.min(-300, anno)));
+  var cid = q.get("citta");
+  var m = cid && allMarkers.find(function(a) { return a.city.id === cid; });
+  if (m) {
+    map.setView([m.city.lat, m.city.lng], 7);
+    if (layerGroup.hasLayer(m.marker)) setTimeout(function() { m.marker.openPopup(); }, 300);
+    return;
+  }
+  var lat = parseFloat(q.get("lat")), lng = parseFloat(q.get("lng"));
+  if (!isNaN(lat) && !isNaN(lng)) map.setView([lat, lng], 7);
+})();
 </script>
 </body>
 </html>

@@ -10,7 +10,7 @@ var Timeline = (function () {
 
   // Ordine delle righe: regione → stati che le appartengono
   var LAYOUT = [
-    { region: "Bassa Mesopotamia", stati: ["ur", "babilonia", "elam"] },
+    { region: "Bassa Mesopotamia", stati: ["akkad", "ur", "babilonia", "elam"] },
     { region: "Alta Mesopotamia", stati: ["assiria", "mitanni", "urartu"] },
     { region: "Siria e Levante", stati: ["ugarit", "amurru", "karkemish", "patina", "samal", "damasco",
                                          "tiro", "biblo", "israele_unito", "israele", "giuda", "moab", "edom"] },
@@ -37,7 +37,7 @@ var Timeline = (function () {
       var items = RULERS.filter(function (r) { return r.stato === st; }).map(function (r) {
         return { t: r.inizio, t2: r.fine > r.inizio ? r.fine : null, title: r.nome,
                  sub: r.fine > r.inizio ? fy(r.inizio) + " – " + fy(r.fine) : fy(r.inizio),
-                 note: r.note || "", ind: !!r.ind, color: inf.colore, kind: "sovrano", group: inf.label };
+                 note: [r.note, rulerKin(r)].filter(Boolean).join(" · "), ind: !!r.ind, color: inf.colore, kind: "sovrano", group: inf.label };
       });
       if (items.length) out.push({ label: inf.label + " · sovrani", items: items, kind: "stato" });
     }
